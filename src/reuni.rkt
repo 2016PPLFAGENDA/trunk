@@ -81,7 +81,12 @@
 ;; Intervalo, Intervalo -> Intervalo
 ;; Calcula a interseção entre os intervalos a e b
 (define (intervalo-intersecao a b)
-  (error "Não implementado"))
+  (cond
+    [(< (intervalo-y a) (intervalo-x b)) intervalo-vazio] ;; Horário final de a é inferior (antes) do horário inicial de b
+    [(< (intervalo-y b) (intervalo-x a)) intervalo-vazio] ;; Horário final de b é inferior (antes) do horário inicial de a
+    []
+  )
+)
 
 ;; list Intervalo, list Intervalo -> list Intervalo
 ;; Encontra a interseção dos intervalos de dispo-a e dispo-b.
