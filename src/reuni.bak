@@ -78,37 +78,13 @@
 (define (intervalo-vazio? inter)
   (equal? inter intervalo-vazio))
 
-;; Horario, Horario -> Horario
-;; Retorna o maior Horario entre dois
-(define (maior-horario a b)
-  (cond
-    [(> (horario-h a) (horario-h b)) a] ;; Horário a é maior que o intervalo b
-    [(< (horario-h a) (horario-h b)) b] ;; Horário b é maior que o intervalo a
-    [(> (horario-m a) (horario-m b)) a] ;; Horário a é maior que o intervalo b
-    [else b]                            ;; Horário b é maior que o intervalo a
-  )
-)
-
-;; Horario, Horario -> Horario
-;; Retorna o menor Horario entre dois
-(define (menor-horario a b)
-  (cond
-    [(< (horario-h a) (horario-h b)) a] ;; Horário a é menor que o intervalo b
-    [(> (horario-h a) (horario-h b)) b] ;; Horário b é menor que o intervalo a
-    [(< (horario-m a) (horario-m b)) a] ;; Horário a é menor que o intervalo b
-    [else b]                            ;; Horário b é menor que o intervalo a
-  )
-)
-
 ;; Intervalo, Intervalo -> Intervalo
 ;; Calcula a interseção entre os intervalos a e b
 (define (intervalo-intersecao a b)
   (cond
-    [(< (intervalo-fim a) (intervalo-inicio b)) intervalo-vazio] ;; Horário final de a é inferior (antes) do horário inicial de b
-    [(< (intervalo-fim b) (intervalo-inicio a)) intervalo-vazio] ;; Horário final de b é inferior (antes) do horário inicial de a
-    [(<= (maior-horario (intervalo-inicio a) (intervalo-inicio b)) (menor-horario (intervalo-fim a) (intervalo-fim b)))
-        ((maior-horario (intervalo-inicio a) (intervalo-inicio b)) (menor-horario (intervalo-fim a) (intervalo-fim b)))]
-    [else intervalo-vazio]
+    [(< (intervalo-y a) (intervalo-x b)) intervalo-vazio] ;; Horário final de a é inferior (antes) do horário inicial de b
+    [(< (intervalo-y b) (intervalo-x a)) intervalo-vazio] ;; Horário final de b é inferior (antes) do horário inicial de a
+    []
   )
 )
 
