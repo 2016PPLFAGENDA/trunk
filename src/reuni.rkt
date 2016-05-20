@@ -104,7 +104,8 @@
 ;; Descrição
 (define (intervalo-valido? inicio fim)
   (cond
-    [(and (<= (horario-h fim) (horario-h inicio)) (<= (horario-m fim) (horario-m inicio))) #f]
+    [(< (horario-h fim) (horario-h inicio)) #f]
+    [(and (= (horario-h fim) (horario-h inicio)) (< (horario-m fim) (horario-m inicio))) #f]
     [else #t]                            
   )
 )
@@ -113,9 +114,9 @@
 ;; Calcula a interseção entre os intervalos a e b
 (define (intervalo-intersecao a b)
   (cond
-    [(not (intervalo-valido? (intervalo-fim a) (intervalo-inicio b))) intervalo-vazio] ;; Horário final de a é inferior (antes) do horário inicial de b
-    [(not (intervalo-valido? (intervalo-fim b) (intervalo-inicio a))) intervalo-vazio] ;; Horário final de b é inferior (antes) do horário inicial de a
-    [(<= (maior-horario (intervalo-inicio a) (intervalo-inicio b)) (menor-horario (intervalo-fim a) (intervalo-fim b)))
+    [(not (intervalo-valido? (intervalo-inicio b) (intervalo-fim a))) intervalo-vazio] ;; Horário final de a é inferior (antes) do horário inicial de b
+    [(not (intervalo-valido? (intervalo-inicio a) (intervalo-fim b))) intervalo-vazio] ;; Horário final de b é inferior (antes) do horário inicial de a
+    [(intervalo-valido? (maior-horario (intervalo-inicio a) (intervalo-inicio b)) (menor-horario (intervalo-fim a) (intervalo-fim b)))
         (intervalo (maior-horario (intervalo-inicio a) (intervalo-inicio b)) (menor-horario (intervalo-fim a) (intervalo-fim b)))]
     [else intervalo-vazio]
   )
