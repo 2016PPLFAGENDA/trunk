@@ -100,14 +100,23 @@
   )
 )
 
+;; Horario, Horario -> Boolean
+;; Descrição
+(define (intervalo-valido? inicio fim)
+  (cond
+    [(and (<= (horario-h fim) (horario-h inicio)) (<= (horario-m fim) (horario-m inicio))) #f]
+    [else #t]                            
+  )
+)
+
 ;; Intervalo, Intervalo -> Intervalo
 ;; Calcula a interseção entre os intervalos a e b
 (define (intervalo-intersecao a b)
   (cond
-    [(< (intervalo-fim a) (intervalo-inicio b)) intervalo-vazio] ;; Horário final de a é inferior (antes) do horário inicial de b
-    [(< (intervalo-fim b) (intervalo-inicio a)) intervalo-vazio] ;; Horário final de b é inferior (antes) do horário inicial de a
+    [(not (intervalo-valido? (intervalo-fim a) (intervalo-inicio b))) intervalo-vazio] ;; Horário final de a é inferior (antes) do horário inicial de b
+    [(not (intervalo-valido? (intervalo-fim b) (intervalo-inicio a))) intervalo-vazio] ;; Horário final de b é inferior (antes) do horário inicial de a
     [(<= (maior-horario (intervalo-inicio a) (intervalo-inicio b)) (menor-horario (intervalo-fim a) (intervalo-fim b)))
-        ((maior-horario (intervalo-inicio a) (intervalo-inicio b)) (menor-horario (intervalo-fim a) (intervalo-fim b)))]
+        (intervalo (maior-horario (intervalo-inicio a) (intervalo-inicio b)) (menor-horario (intervalo-fim a) (intervalo-fim b)))]
     [else intervalo-vazio]
   )
 )
