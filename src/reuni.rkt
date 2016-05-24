@@ -122,15 +122,6 @@
   )
 )
 
-;; Lista de Intervalos, Lista de Intervalos -> Lista de Intervalos
-;; Calcula a interseção entre os intervalos a e b
-(define (lista-intervalo-intersecao-lista lista-a lista-b)
-  (cond
-    [(empty? lista-a) empty]
-    [else (cons (intervalo-intersecao-lista (first lista-a) lista-b) (lista-intervalo-intersecao-lista (rest lista-a) lista-b))]
-  )
-)
-
 ;; Intervalo, Lista de Intervalos -> Lista de Intervalos
 ;; Calcula a interseção entre os intervalos a e b
 (define (intervalo-intersecao-lista intervalo-a lista-b)
@@ -147,7 +138,7 @@
   (cond
     [(empty? dispo-a) empty]
     [(empty? dispo-b) empty]
-    [(lista-intervalo-intersecao-lista dispo-a dispo-b)]
+    [else (cons (intervalo-intersecao-lista (first dispo-a) dispo-b) (encontrar-dispo-em-comum (rest dispo-a) dispo-b))]
   )
 )
 
