@@ -116,8 +116,10 @@
   (cond
     [(not (intervalo-valido? (intervalo-inicio b) (intervalo-fim a))) intervalo-vazio] ;; Horário final de a é inferior (antes) do horário inicial de b
     [(not (intervalo-valido? (intervalo-inicio a) (intervalo-fim b))) intervalo-vazio] ;; Horário final de b é inferior (antes) do horário inicial de a
-    [(intervalo-valido? (maior-horario (intervalo-inicio a) (intervalo-inicio b)) (menor-horario (intervalo-fim a) (intervalo-fim b)))
-        (intervalo (maior-horario (intervalo-inicio a) (intervalo-inicio b)) (menor-horario (intervalo-fim a) (intervalo-fim b)))]
+    [(let ([inicial (maior-horario (intervalo-inicio a) (intervalo-inicio b))]
+           [final (menor-horario (intervalo-fim a) (intervalo-fim b))])
+     (intervalo-valido? inicial final)
+        (intervalo inicial final))]
     [else intervalo-vazio]
   )
 )
@@ -127,10 +129,11 @@
 (define (intervalo-intersecao-lista intervalo-a lista-b)
   (cond
     [(empty? lista-b) empty]
-    [(intervalo-vazio? (intervalo-intersecao intervalo-a (first lista-b))) empty]
-    [else (intervalo (intervalo-intersecao intervalo-a (first lista-b)) (intervalo-intersecao-lista intervalo-a (rest lista-b)))]
-  )
-)
+    [else
+     (let ([inter (intervalo-intersecao intervalo-a (first lista-b))])
+       (if (intervalo-vazio? inter)
+           (intervalo-intersecao-lista intervalo-a (rest lista-b))
+           (cons inter (intervalo-intersecao-lista intervalo-a (rest lista-b)))))]))
 
 ;; list Intervalo, list Intervalo -> list Intervalo
 ;; Encontra a interseção dos intervalos de dispo-a e dispo-b.
@@ -138,7 +141,7 @@
   (cond
     [(empty? dispo-a) empty]
     [(empty? dispo-b) empty]
-    [else (cons (intervalo-intersecao-lista (first dispo-a) dispo-b) (encontrar-dispo-em-comum (rest dispo-a) dispo-b))]
+    [else (append (intervalo-intersecao-lista (first dispo-a) dispo-b) (encontrar-dispo-em-comum (rest dispo-a) dispo-b))]
   )
 )
 
