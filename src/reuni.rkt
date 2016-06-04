@@ -145,6 +145,29 @@
   )
 )
 
+;; Horario -> Inteiro
+;; Converte um horario para minutos.
+(define (horario-para-minutos hora)
+  (let ([hora-em-minutos (* (horario-h hora) 60)])
+    (+ hora-em-minutos horario-m hora)
+  )
+)
+
+;; Intervalo -> Inteiro
+;; Encontra o tempo, em minutos, deum intervalo.
+(define (intervalo-para-minutos inter)
+  (let ([minutos-inicio-intervalo (horario-para-minutos (intervalo-inicio inter))]
+        [minutos-fim-intervalo (horario-para-minutos (intervalo-fim inter))])
+    (- minutos-fim-intervalo minutos-inicio-intervalo)
+  )
+)
+
+;; Intervalo, Inteiro -> Boolean
+;; Verifica se o tempo comparado é menor que o intervalo.
+(define (tempo-intervalo-valido? inter tempo)
+  (< (horario-para-minutos tempo) (intervalo-para-minutos inter))
+)
+
 ;; Horário, list dispo-semana -> dispo-semana
 ;; Esta função encontra os intervalos disponíveis para cada dia da semana que
 ;; sejam maiores que tempo e que sejam comuns a todas as disponibilidades
