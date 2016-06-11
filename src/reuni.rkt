@@ -73,6 +73,9 @@
 ;; Constante que define um intervalo vazio
 (define intervalo-vazio (void))
 
+;; Constante que define os dias da semana
+(define dias-semana  '("seg" "ter" "qua" "qui" "sex" "sab" "dom"))
+
 ;; Intervalo -> bool
 ;; Retorna #t se inter representa o intervalo vazio, #f caso contrário
 (define (intervalo-vazio? inter)
@@ -80,33 +83,60 @@
 
 ;; Horario, Horario -> Horario
 ;; Retorna o maior Horario entre dois
-(define (maior-horario a b)
-  (cond
-    [(> (horario-h a) (horario-h b)) a] ;; Horário a é maior que o intervalo b
-    [(< (horario-h a) (horario-h b)) b] ;; Horário b é maior que o intervalo a
-    [(> (horario-m a) (horario-m b)) a] ;; Horário a é maior que o intervalo b
-    [else b]                            ;; Horário b é maior que o intervalo a
-  )
+(define (maior-horario horario-a horario-b)
+  (retorna-horario horario-a horario-b >)
 )
 
 ;; Horario, Horario -> Horario
 ;; Retorna o menor Horario entre dois
-(define (menor-horario a b)
-  (cond
-    [(< (horario-h a) (horario-h b)) a] ;; Horário a é menor que o intervalo b
-    [(> (horario-h a) (horario-h b)) b] ;; Horário b é menor que o intervalo a
-    [(< (horario-m a) (horario-m b)) a] ;; Horário a é menor que o intervalo b
-    [else b]                            ;; Horário b é menor que o intervalo a
+(define (menor-horario horario-a horario-b)
+  (retorna-horario horario-a horario-b <)
+)
+
+;; Horario, Horario, Operador -> Horario
+;; Retorna o Horario, entre dois, que satisfaça o operador ('>' ou '<')
+(define (retorna-horario horario-a horario-b operador)
+  (let ([minutos-horario-a (horario-para-minutos horario-a)]
+        [minutos-horario-b (horario-para-minutos horario-b)])
+    (cond
+      [(operador minutos-horario-a minutos-horario-b) horario-a]
+      [else horario-b]    
+    )                       
   )
 )
 
 ;; Horario, Horario -> Boolean
 ;; Descrição
 (define (intervalo-valido? inicio fim)
-  (cond
-    [(< (horario-h fim) (horario-h inicio)) #f]
-    [(and (= (horario-h fim) (horario-h inicio)) (< (horario-m fim) (horario-m inicio))) #f]
-    [else #t]                            
+  (let ([minutos-inicio (horario-para-minutos inicio)]
+        [minutos-fim    (horario-para-minutos fim)])
+    (not (< minutos-fim minutos-inicio))
+  )
+)
+
+;; Horario -> Inteiro
+;; Converte um horario para minutos.
+(define (horario-para-minutos hora)
+  (let ([minutos-hora (* (horario-h hora) 60)])
+    (+ minutos-hora (horario-m hora))
+  )
+)
+
+;; Intervalo -> Inteiro
+;; Encontra o tempo, em minutos, deum intervalo.
+(define (intervalo-para-minutos inter)
+  (let ([minutos-inicio (horario-para-minutos (intervalo-inicio inter))]
+        [minutos-fim    (horario-para-minutos (intervalo-fim    inter))])
+    (- minutos-fim minutos-inicio)
+  )
+)
+
+;; Intervalo, Inteiro -> Boolean
+;; Verifica se o tempo comparado é menor que o intervalo.
+(define (tempo-intervalo-valido? inter tempo)
+  (let ([minutos-intervalo (intervalo-para-minutos inter)]
+        [minutos-tempo     (horario-para-minutos tempo)])
+   (not (> minutos-tempo minutos-intervalo))
   )
 )
 
@@ -114,8 +144,8 @@
 ;; Calcula a interseção entre os intervalos a e b
 (define (intervalo-intersecao a b)
   (cond
-    [(not (intervalo-valido? (intervalo-inicio b) (intervalo-fim a))) intervalo-vazio] ;; Horário final de a é inferior (antes) do horário inicial de b
-    [(not (intervalo-valido? (intervalo-inicio a) (intervalo-fim b))) intervalo-vazio] ;; Horário final de b é inferior (antes) do horário inicial de a
+    [(not (intervalo-valido? (intervalo-inicio b) (intervalo-fim a))) intervalo-vazio]
+    [(not (intervalo-valido? (intervalo-inicio a) (intervalo-fim b))) intervalo-vazio]
     [(let ([inicial (maior-horario (intervalo-inicio a) (intervalo-inicio b))]
            [final (menor-horario (intervalo-fim a) (intervalo-fim b))])
      (intervalo-valido? inicial final)
@@ -139,33 +169,37 @@
 ;; Encontra a interseção dos intervalos de dispo-a e dispo-b.
 (define (encontrar-dispo-em-comum dispo-a dispo-b)
   (cond
-    [(empty? dispo-a) empty]
-    [(empty? dispo-b) empty]
+    [(or (empty? dispo-a) (empty? dispo-b)) empty]
     [else (append (intervalo-intersecao-lista (first dispo-a) dispo-b) (encontrar-dispo-em-comum (rest dispo-a) dispo-b))]
   )
 )
 
-;; Horario -> Inteiro
-;; Converte um horario para minutos.
-(define (horario-para-minutos hora)
-  (let ([hora-em-minutos (* (horario-h hora) 60)])
-    (+ hora-em-minutos horario-m hora)
-  )
+;; Lista Intervalos, String -> Boolean
+;; Retorna se a lista possui disponibilidade na semana.
+(define (disponibilidade-dia? dispos dia)
+  (assoc dia dispos)
 )
 
-;; Intervalo -> Inteiro
-;; Encontra o tempo, em minutos, deum intervalo.
-(define (intervalo-para-minutos inter)
-  (let ([minutos-inicio-intervalo (horario-para-minutos (intervalo-inicio inter))]
-        [minutos-fim-intervalo (horario-para-minutos (intervalo-fim inter))])
-    (- minutos-fim-intervalo minutos-inicio-intervalo)
-  )
+;; Lista Intervalos, Lista Intervalos, String -> Boolean
+;; Retorna se as listas possuem disponibilidade na semana.
+(define (disponibilidade-dispos-dia? dispo-a dispo-b dia)
+  (and (disponibilidade-dia? dispo-a dia) (disponibilidade-dia? dispo-b dia))
 )
 
-;; Intervalo, Inteiro -> Boolean
-;; Verifica se o tempo comparado é menor que o intervalo.
-(define (tempo-intervalo-valido? inter tempo)
-  (< (horario-para-minutos tempo) (intervalo-para-minutos inter))
+;; Lista Intervalos, Lista Intervalos, String, Inteiro -> Par dia e Intervalos
+;; Retorna o par de disponibilidades entre duas listas, no dia e de acordo com o tempo estabelecido
+(define (disponibilidade-por-dia-e-tempo dispo-a dispo-b dia-semana tempo)
+  (if (and (disponibilidade-dispos-dia? dispo-a dispo-b dia-semana))
+      (let ([dispos (encontrar-dispo-em-comum (car (cdr (assoc dia-semana dispo-a)))
+                                              (car (cdr (assoc dia-semana dispo-b))))])
+        (let ([disponibilidades (filter (λ (inter) (tempo-intervalo-valido? inter tempo)) dispos)])
+          (if (not (null? disponibilidades))
+              (list dia-semana disponibilidades)
+              empty)
+        )
+      )
+      empty
+  )
 )
 
 ;; Horário, list dispo-semana -> dispo-semana
@@ -189,7 +223,18 @@
 ;; semanais, o exemplo acima refere-se a apenas uma disponibilidade semanal.
 ;; Veja os testes de unidade para exemplos de entrada e saída desta função
 (define (encontrar-dispo-semana-em-comum tempo dispos)
-  (error "Não implementado"))
+  (define (filtra-dispos dispo-a dispo-b)
+    (let ([mapeados (map (λ (dia)
+                           (disponibilidade-por-dia-e-tempo dispo-a dispo-b dia tempo))
+                         dias-semana)])
+      (filter pair? mapeados)
+    )
+  )
+  
+  (filter pair? (foldr filtra-dispos (first dispos)
+                                     (cdr   dispos))
+  )
+)
 
 ;; list string -> void
 ;; Esta é a função principal. Esta função é chamada a partir do arquivo
