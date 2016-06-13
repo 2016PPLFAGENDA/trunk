@@ -96,8 +96,8 @@
 ;; Horario, Horario, Operador -> Horario
 ;; Retorna o Horario, entre dois, que satisfaça o operador ('>' ou '<')
 (define (retorna-horario horario-a horario-b operador)
-  (let ([minutos-horario-a (horario-para-minutos horario-a)]
-        [minutos-horario-b (horario-para-minutos horario-b)])
+  (let ([minutos-horario-a (horario-em-minutos horario-a)]
+        [minutos-horario-b (horario-em-minutos horario-b)])
     (cond
       [(operador minutos-horario-a minutos-horario-b) horario-a]
       [else horario-b]    
@@ -108,15 +108,15 @@
 ;; Horario, Horario -> Boolean
 ;; Descrição
 (define (intervalo-valido? inicio fim)
-  (let ([minutos-inicio (horario-para-minutos inicio)]
-        [minutos-fim    (horario-para-minutos fim)])
+  (let ([minutos-inicio (horario-em-minutos inicio)]
+        [minutos-fim    (horario-em-minutos fim)])
     (not (< minutos-fim minutos-inicio))
   )
 )
 
 ;; Horario -> Inteiro
 ;; Converte um horario para minutos.
-(define (horario-para-minutos hora)
+(define (horario-em-minutos hora)
   (let ([minutos-hora (* (horario-h hora) 60)])
     (+ minutos-hora (horario-m hora))
   )
@@ -124,9 +124,9 @@
 
 ;; Intervalo -> Inteiro
 ;; Encontra o tempo, em minutos, deum intervalo.
-(define (intervalo-para-minutos inter)
-  (let ([minutos-inicio (horario-para-minutos (intervalo-inicio inter))]
-        [minutos-fim    (horario-para-minutos (intervalo-fim    inter))])
+(define (intervalo-em-minutos inter)
+  (let ([minutos-inicio (horario-em-minutos (intervalo-inicio inter))]
+        [minutos-fim    (horario-em-minutos (intervalo-fim    inter))])
     (- minutos-fim minutos-inicio)
   )
 )
@@ -134,8 +134,8 @@
 ;; Intervalo, Inteiro -> Boolean
 ;; Verifica se o tempo comparado é menor que o intervalo.
 (define (tempo-intervalo-valido? inter tempo)
-  (let ([minutos-intervalo (intervalo-para-minutos inter)]
-        [minutos-tempo     (horario-para-minutos tempo)])
+  (let ([minutos-intervalo (intervalo-em-minutos inter)]
+        [minutos-tempo     (horario-em-minutos tempo)])
    (not (> minutos-tempo minutos-intervalo))
   )
 )
