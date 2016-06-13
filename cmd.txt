@@ -1,0 +1,3 @@
+"C:\Program Files\Racket\Racket.exe" C:\Projetos\UEM\PPLF\agenda\trunk\src\reuni-main.rkt 00:30 testes\a testes\b
+
+C:\Python27\python.exe C:\Projetos\UEM\PPLF\agenda\trunk\testador_win.py C:\Projetos\UEM\PPLF\agenda\trunk\testes\casos "C:\Program Files\Racket\Racket.exe" C:\Projetos\UEM\PPLF\agenda\trunk\src\reuni-main.rkt
