@@ -279,8 +279,8 @@
 (define (inteiro-em-string-formato valor)
   (let ([valor-string (number->string valor)])
     (cond
-      [(< (string-length valor-string) 2) (string-append "0" (valor-string))]
-      [else (valor-string)]
+      [(< (string-length valor-string) 2) (string-append "0" valor-string)]
+      [else valor-string]
     )
   )
 )
