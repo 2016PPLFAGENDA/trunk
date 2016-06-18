@@ -48,7 +48,6 @@
 ;;  Observe que nem todos os dias devem estar especificados. Os dias
 ;;  que não têm disponibilidades não devem ser especificados.
 
-
 ;; exporta as funções que podem ser utilizadas em outros arquivos
 (provide horario
          intervalo
@@ -80,6 +79,14 @@
 ;; Retorna #t se inter representa o intervalo vazio, #f caso contrário
 (define (intervalo-vazio? inter)
   (equal? inter intervalo-vazio))
+
+;; Horario -> Inteiro
+;; Converte um horario para minutos.
+(define (horario-em-minutos hora)
+  (let ([minutos-hora (* (horario-h hora) 60)])
+    (+ minutos-hora (horario-m hora))
+  )
+)
 
 ;; Horario, Horario -> Horario
 ;; Retorna o maior Horario entre dois
@@ -114,14 +121,6 @@
   )
 )
 
-;; Horario -> Inteiro
-;; Converte um horario para minutos.
-(define (horario-em-minutos hora)
-  (let ([minutos-hora (* (horario-h hora) 60)])
-    (+ minutos-hora (horario-m hora))
-  )
-)
-
 ;; Intervalo -> Inteiro
 ;; Encontra o tempo, em minutos, deum intervalo.
 (define (intervalo-em-minutos inter)
@@ -137,6 +136,15 @@
   (let ([minutos-intervalo (intervalo-em-minutos inter)]
         [minutos-tempo     (horario-em-minutos tempo)])
    (not (> minutos-tempo minutos-intervalo))
+  )
+)
+
+;; String -> Horario
+;; Converte um valor, referente a um horário, na estrutura Horario
+(define (string-em-horario horario-string)
+  (let([hora    (string->number (substring horario-string 0 2))]
+       [minutos (string->number (substring horario-string 3 5))])
+  (horario hora minutos)
   )
 )
 
@@ -190,8 +198,8 @@
 ;; Retorna o par de disponibilidades entre duas listas, no dia e de acordo com o tempo estabelecido
 (define (disponibilidade-por-dia-e-tempo dispo-a dispo-b dia-semana tempo)
   (if (and (disponibilidade-dispos-dia? dispo-a dispo-b dia-semana))
-      (let ([dispos (encontrar-dispo-em-comum (car (cdr (assoc dia-semana dispo-a)))
-                                              (car (cdr (assoc dia-semana dispo-b))))])
+      (let ([dispos (encontrar-dispo-em-comum (first (cdr (assoc dia-semana dispo-a)))
+                                              (first (cdr (assoc dia-semana dispo-b))))])
         (let ([disponibilidades (filter (λ (inter) (tempo-intervalo-valido? inter tempo)) dispos)])
           (if (not (null? disponibilidades))
               (list dia-semana disponibilidades)
@@ -200,6 +208,12 @@
       )
       empty
   )
+)
+
+;;Lista Dispos, Lista Dispos, Horario -> 
+;;Mapeia as disponibilidades dos dias da semana por dia e tempo
+(define (mapeia-dias-semana dispo-a dispo-b tempo)
+  (map (λ (dia) (disponibilidade-por-dia-e-tempo dispo-a dispo-b dia tempo)) dias-semana)
 )
 
 ;; Horário, list dispo-semana -> dispo-semana
@@ -224,16 +238,67 @@
 ;; Veja os testes de unidade para exemplos de entrada e saída desta função
 (define (encontrar-dispo-semana-em-comum tempo dispos)
   (define (filtra-dispos dispo-a dispo-b)
-    (let ([mapeados (map (λ (dia)
-                           (disponibilidade-por-dia-e-tempo dispo-a dispo-b dia tempo))
-                         dias-semana)])
-      (filter pair? mapeados)
-    )
+    (filter pair? (mapeia-dias-semana dispo-a dispo-b tempo))
   )
   
   (filter pair? (foldr filtra-dispos (first dispos)
                                      (cdr   dispos))
   )
+)
+
+(define (string-em-intervalo intervalo-string)
+  (let ([string-inicio (substring intervalo-string 0 5)]
+        [string-fim    (substring intervalo-string 6 11)])
+    (let ([horario-inicio (string-em-horario string-inicio)]
+          [horario-fim    (string-em-horario string-fim)])
+      (intervalo horario-inicio horario-fim)
+    )
+  )
+)
+
+(define (linha-em-intervalos linha)
+  (map string-em-intervalo (cdr linha))
+)
+
+(define (string-em-dispo linha)
+  (cons (first linha) (list (linha-em-intervalos linha)))
+)
+
+(define (arquivos-em-linhas arquivo)
+  (map string-split (file->lines arquivo))
+)
+
+(define (arquivo-em-lista-dispos arquivo)
+  (map string-em-dispo (arquivos-em-linhas arquivo))
+)
+
+(define (mapeia-dispos-arquivos lista-de-arquivos)
+  (map arquivo-em-lista-dispos lista-de-arquivos)
+)
+
+(define (inteiro-em-string-formato valor)
+  (let ([valor-string (number->string valor)])
+    (cond
+      [(< (string-length valor-string) 2) (string-append "0" (valor-string))]
+      [else (valor-string)]
+    )
+  )
+)
+
+(define (horario-em-string hora)
+  (string-append (inteiro-em-string-formato (horario-h hora)) ":" (inteiro-em-string-formato (horario-m hora)))
+)
+
+(define (imprime-intervalos intervalos)
+  (cond
+    [(empty? intervalos) (display "\n")]
+    [(display (string-append " " (horario-em-string (intervalo-inicio (first intervalos))) "-" (horario-em-string (intervalo-fim (first intervalos))))) (imprime-intervalos (rest intervalos))]
+  )
+)
+
+(define (imprime-dispos dispo)
+  (display (first dispo))
+  (map imprime-intervalos (cdr dispo))
 )
 
 ;; list string -> void
@@ -253,4 +318,10 @@
 ;; foram encontrados. O formato da saída deve ser o mesmo da disponibilidade
 ;; semanal.
 (define (main args)
-  (error "Não implementado"))
+  (let ([tempo (string-em-horario (first args))]
+        [lista-de-arquivos (cdr args)])
+    (let ([disponibilidades (mapeia-dispos-arquivos lista-de-arquivos)])
+      (map imprime-dispos (encontrar-dispo-semana-em-comum tempo disponibilidades))
+    )
+  )
+)
