@@ -113,7 +113,8 @@
 )
 
 ;; Horario, Horario -> Boolean
-;; Descrição
+;; Verifica se um intervalo de tempo é válido, e devolve #t ou #f. Por exemplo, o intervalo tem inicio e fim,
+;; no caso de o fim ser menor que o inicio a função deve retornar #f.
 (define (intervalo-valido? inicio fim)
   (let ([minutos-inicio (horario-em-minutos inicio)]
         [minutos-fim    (horario-em-minutos fim)])
@@ -122,7 +123,7 @@
 )
 
 ;; Intervalo -> Inteiro
-;; Encontra o tempo, em minutos, deum intervalo.
+;; Encontra o tempo, em minutos, de um intervalo.
 (define (intervalo-em-minutos inter)
   (let ([minutos-inicio (horario-em-minutos (intervalo-inicio inter))]
         [minutos-fim    (horario-em-minutos (intervalo-fim    inter))])
@@ -210,7 +211,7 @@
   )
 )
 
-;;Lista Dispos, Lista Dispos, Horario -> 
+;;Lista Dispos, Lista Dispos, Horario -> disponiilidade-por-dia-e-tempo
 ;;Mapeia as disponibilidades dos dias da semana por dia e tempo
 (define (mapeia-dias-semana dispo-a dispo-b tempo)
   (map (λ (dia) (disponibilidade-por-dia-e-tempo dispo-a dispo-b dia tempo)) dias-semana)
@@ -236,6 +237,9 @@
 ;; Observe que esta função recebe como parâmetro uma lista de disponibilidades
 ;; semanais, o exemplo acima refere-se a apenas uma disponibilidade semanal.
 ;; Veja os testes de unidade para exemplos de entrada e saída desta função
+
+;; Horário, list dispo-semana -> dispo-semana
+;; Esta função encontra a disponibilidade semanal que duas pessoas teriam caso quisessem marcar um reunião de X minutos.
 (define (encontrar-dispo-semana-em-comum tempo dispos)
   (define (filtra-dispos dispo-a dispo-b)
     (filter pair? (mapeia-dias-semana dispo-a dispo-b tempo))
@@ -246,6 +250,8 @@
   )
 )
 
+;; String -> intervalo-string
+;; Converte as informações de horário lidas do arquivo na forma de String e transforma em intervalo.
 (define (string-em-intervalo intervalo-string)
   (let ([string-inicio (substring intervalo-string 0 5)]
         [string-fim    (substring intervalo-string 6 11)])
@@ -256,26 +262,38 @@
   )
 )
 
+;; Linha de String -> Intervalo
+;; Mapeia apenas uma linha do arquivo de string para intervalo.
 (define (linha-em-intervalos linha)
   (map string-em-intervalo (cdr linha))
 )
 
+;; String -> dispo-a ou dispo-b ou dispo-c 
+;; Controi uma lista de disponibilidade a partir de cada linha do arquivo.
 (define (string-em-dispo linha)
   (cons (first linha) (list (linha-em-intervalos linha)))
 )
 
+;; Arquivo -> Linha
+;; Divide as informações do arquivo por linha.
 (define (arquivos-em-linhas arquivo)
   (map string-split (file->lines arquivo))
 )
 
+;; Arquivo -> lista-dispos
+;; Transforma as informações do arquivo em uma lista de disponibilidade.
 (define (arquivo-em-lista-dispos arquivo)
   (map string-em-dispo (arquivos-em-linhas arquivo))
 )
 
+;; Lista de arquivos -> Lista de Dispos
+;; Mapeia de todos os arquivos de listas para uma lista de dispos, por exemplo: list '(dispo-a, dispo-b).
 (define (mapeia-dispos-arquivos lista-de-arquivos)
   (map arquivo-em-lista-dispos lista-de-arquivos)
 )
 
+;; Inteiro -> String 
+;; Faz a conversão de um inteiro para String no formato correto, com o valor tendo sempre 2 dígitos.
 (define (inteiro-em-string-formato valor)
   (let ([valor-string (number->string valor)])
     (cond
@@ -285,10 +303,14 @@
   )
 )
 
+;; Horario -> String
+;; Transforma o horário em uma String no formato HH:MM.
 (define (horario-em-string hora)
   (string-append (inteiro-em-string-formato (horario-h hora)) ":" (inteiro-em-string-formato (horario-m hora)))
 )
 
+;; Intervalos -> Intervalos
+;; Imprime na tela os intervalos.
 (define (imprime-intervalos intervalos)
   (cond
     [(empty? intervalos) (display "\n")]
@@ -296,6 +318,8 @@
   )
 )
 
+;; Lista de Dispos -> Dispo
+;; Imprime a disponibiliade na tela.
 (define (imprime-dispos dispo)
   (display (first dispo))
   (map imprime-intervalos (cdr dispo))
@@ -317,6 +341,10 @@
 ;; A saída desta função é a escrita na tela dos intervalos em comum que
 ;; foram encontrados. O formato da saída deve ser o mesmo da disponibilidade
 ;; semanal.
+
+;; list string -> void
+;; Função main recebe o tempo que a pessoa deseja que a reunião tenha e as listas com as disponibilidades de todos que devem comparecer na reunião.
+;; Faz a verificação se todos os envolvidos possuem disponibilidade em comum e devolve os dias e horários possiveis para se marcar a reunião.
 (define (main args)
   (let ([tempo (string-em-horario (first args))]
         [lista-de-arquivos (cdr args)])
