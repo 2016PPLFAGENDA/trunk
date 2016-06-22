@@ -244,9 +244,8 @@
   (define (filtra-dispos dispo-a dispo-b)
     (filter pair? (mapeia-dias-semana dispo-a dispo-b tempo))
   )
-  
-  (filter pair? (foldr filtra-dispos (first dispos)
-                                     (cdr   dispos))
+  (foldr filtra-dispos (first dispos)
+                               (cdr   dispos)
   )
 )
 
@@ -282,8 +281,8 @@
 
 ;; Arquivo -> lista-dispos
 ;; Transforma as informações do arquivo em uma lista de disponibilidade.
-(define (arquivo-em-lista-dispos arquivo)
-  (map string-em-dispo (arquivos-em-linhas arquivo))
+(define (arquivo-em-lista-dispos arquivos)
+  (map string-em-dispo (arquivos-em-linhas arquivos))
 )
 
 ;; Lista de arquivos -> Lista de Dispos
@@ -309,20 +308,33 @@
   (string-append (inteiro-em-string-formato (horario-h hora)) ":" (inteiro-em-string-formato (horario-m hora)))
 )
 
-;; Intervalos -> Intervalos
-;; Imprime na tela os intervalos.
-(define (imprime-intervalos intervalos)
+;; Lista Intervalos -> String
+;; Transforma os intervalos em uma String no formato 'HH:MM-HH:MM'.
+(define (imprime-intervalo intervalos)
   (cond
-    [(empty? intervalos) (display "\n")]
-    [(display (string-append " " (horario-em-string (intervalo-inicio (first intervalos))) "-" (horario-em-string (intervalo-fim (first intervalos))))) (imprime-intervalos (rest intervalos))]
+    [(empty? intervalos) "~n"]
+    [(empty? (cdr intervalos)) (string-append (horario-em-string (intervalo-inicio (first intervalos))) "-" (horario-em-string (intervalo-fim (first intervalos))) (imprime-intervalo (cdr intervalos)))]
+    [else (string-append (string-append (horario-em-string (intervalo-inicio (first intervalos))) "-" (horario-em-string (intervalo-fim (first intervalos)))) " " (imprime-intervalo (cdr intervalos)))]
   )
 )
 
-;; Lista de Dispos -> Dispo
-;; Imprime a disponibiliade na tela.
-(define (imprime-dispos dispo)
-  (display (first dispo))
-  (map imprime-intervalos (cdr dispo))
+;; Lista intervalos -> String
+;; Transforma os intervalos em uma String no formato 'Dia HH:MM-HH:MM HH:MM-HH:MM'.
+(define (imprime-linha linha)
+  (cond
+    [(empty? linha) ""]
+    [else (string-append (string-append (first linha) " " (imprime-intervalo (first (cdr linha)))))]
+  )
+)
+
+;; Lista intervalos -> String
+;; Transforma os intervalos em String.
+(define (imprime disponibilidades)
+    (cond
+      [(empty? disponibilidades) ""]
+      [(empty? (cdr disponibilidades)) (imprime-linha (first disponibilidades))]
+      [else (string-append (imprime-linha (first disponibilidades)) (imprime (cdr disponibilidades)))]
+    )
 )
 
 ;; list string -> void
@@ -349,7 +361,12 @@
   (let ([tempo (string-em-horario (first args))]
         [lista-de-arquivos (cdr args)])
     (let ([disponibilidades (mapeia-dispos-arquivos lista-de-arquivos)])
-      (map imprime-dispos (encontrar-dispo-semana-em-comum tempo disponibilidades))
+      (cond
+        [(empty? (cdr lista-de-arquivos))       
+         (printf (imprime (encontrar-dispo-semana-em-comum tempo (append disponibilidades disponibilidades))))]
+        [else 
+         (printf (imprime (encontrar-dispo-semana-em-comum tempo disponibilidades)))]
+        )    
     )
   )
 )
